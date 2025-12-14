@@ -14,7 +14,7 @@ from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKe
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from loguru import logger
-from .config import settings, SUBSCRIPTION_PLANS, CONTENT_TYPES
+from config import settings, SUBSCRIPTION_PLANS, CONTENT_TYPES
 from yandex_kassa_handler import kassa
 
 # ==================== ИНИЦИАЛИЗАЦИЯ ====================
