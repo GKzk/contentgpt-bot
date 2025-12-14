@@ -26,7 +26,8 @@ class YandexKassaHandler:
             "amount": {"value": f"{amount:.2f}", "currency": "RUB"},
             "confirmation": {
                 "type": "redirect",
-                "return_url": settings.PAYMENT_RETURN_URL or "https://example.com",
+                "return_url": getattr(settings, 'PAYMENT_RETURN_URL', 'https://example.com'),
+
             },
             "capture": True,
             "description": description,
