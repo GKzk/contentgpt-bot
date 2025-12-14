@@ -31,7 +31,7 @@ class Settings:
     YANDEX_KASSA_SHOP_ID = os.getenv("YANDEX_KASSA_SHOP_ID", "")
     YANDEX_KASSA_SECRET_KEY = os.getenv("YANDEX_KASSA_SECRET_KEY", "")
     PAYMENT_WEBHOOK_URL = os.getenv("PAYMENT_WEBHOOK_URL", "https://yourdomain.com/webhook/yandex")
-    
+    YOOKASSA_API_BASE = os.getenv("YOOKASSA_API_BASE", "https://api.yookassa.ru/v3")
     # TELEGRAM STARS
     PAYMENT_PROVIDER_TOKEN = os.getenv("PAYMENT_PROVIDER_TOKEN", "")
     

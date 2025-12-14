@@ -544,6 +544,12 @@ async def btn_generation(message: Message):
 @router.message(F.text == "👤 Профиль")
 async def btn_profile(message: Message):
     uid = message.from_user.id
+    username = message.from_user.username or ""
+    first_name = message.from_user.first_name or "Пользователь"
+    
+    # ✅ Создаём профиль если его нет
+    get_or_create_user(uid, username, first_name)
+    
     user = get_user_info(uid)
     if not user:
         await message.answer("❌ Профиль не найден.")
