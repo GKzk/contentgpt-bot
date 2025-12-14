@@ -11,7 +11,7 @@ from config import settings
 class YandexKassaHandler:
     """Обработчик платежей Яндекс.Касса"""
     
-    API_URL = "https://api.yookassa.ru/v3/payments" 
+    BASE_URL = "https://api.yandex.checkout.com/v3"
     
     def __init__(self):
         self.shop_id = settings.YANDEX_KASSA_SHOP_ID
