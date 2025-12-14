@@ -1,0 +1,96 @@
+2025-11-18 01:08:46.607 | INFO     | __main__:main:493 - 🚀 Запуск бота...
+2025-11-18 01:10:12.849 | INFO     | __main__:start_command:62 - ✅ Новый пользователь: G.K. (@G_Kzk)
+2025-11-18 01:12:28.525 | ERROR    | __main__:topic_received:348 - Ошибка при генерации: module 'openai' has no attribute 'error'
+2025-11-18 01:12:58.171 | ERROR    | __main__:topic_received:348 - Ошибка при генерации: module 'openai' has no attribute 'error'
+2025-11-18 01:15:28.141 | ERROR    | __main__:audience_received:423 - Ошибка: module 'openai' has no attribute 'error'
+2025-11-18 02:41:15.788 | INFO     | __main__:main:496 - 🚀 Запуск бота...
+2025-11-18 02:41:17.769 | ERROR    | __main__:main:501 - ❌ Ошибка при запуске: Telegram server says - Unauthorized
+2025-11-18 02:41:17.769 | INFO     | __main__:main:504 - 🛑 Бот остановлен
+2025-11-18 02:44:41.265 | INFO     | __main__:main:496 - 🚀 Запуск бота...
+2025-11-18 02:45:23.762 | ERROR    | __main__:topic_received:350 - Ошибка при генерации: name 'audience' is not defined
+2025-11-18 02:46:17.944 | ERROR    | yandex_api:_call_yandex_gpt:182 - ❌ Ошибка YandexGPT API: статус 403
+2025-11-18 02:46:17.944 | ERROR    | yandex_api:_call_yandex_gpt:183 - Ответ: {"error":{"grpcCode":7,"httpCode":403,"message":"Permission denied","httpStatus":"Forbidden","details":[]}}
+2025-11-18 02:53:16.788 | INFO     | __main__:main:498 - 🚀 Запуск бота...
+2025-11-18 02:53:52.031 | ERROR    | yandex_api:_call_yandex_gpt:182 - ❌ Ошибка YandexGPT API: статус 403
+2025-11-18 02:53:52.031 | ERROR    | yandex_api:_call_yandex_gpt:183 - Ответ: {"error":{"grpcCode":7,"httpCode":403,"message":"Permission denied","httpStatus":"Forbidden","details":[]}}
+2025-11-18 02:54:05.209 | ERROR    | __main__:topic_received:350 - Ошибка при генерации: name 'audience' is not defined
+2025-11-18 02:55:50.159 | ERROR    | __main__:topic_received:350 - Ошибка при генерации: name 'audience' is not defined
+2025-11-18 03:03:06.000 | INFO     | __main__:main:495 - 🚀 Запуск бота...
+2025-11-18 03:03:25.175 | INFO     | __main__:start_command:64 - ✅ Новый пользователь: G.K. (@G_Kzk)
+2025-11-18 03:03:48.991 | ERROR    | yandex_api:_call_yandex_gpt:182 - ❌ Ошибка YandexGPT API: статус 400
+2025-11-18 03:03:48.991 | ERROR    | yandex_api:_call_yandex_gpt:183 - Ответ: {"error":{"grpcCode":3,"httpCode":400,"message":"Specified folder ID 'ajeo6305v0s5dlvo8fgg' does not match with service account folder ID 'b1gr80e9fpsh1ord9lrg'","httpStatus":"Bad Request","details":[]}}
+2025-11-18 03:04:37.058 | ERROR    | yandex_api:_call_yandex_gpt:182 - ❌ Ошибка YandexGPT API: статус 400
+2025-11-18 03:04:37.058 | ERROR    | yandex_api:_call_yandex_gpt:183 - Ответ: {"error":{"grpcCode":3,"httpCode":400,"message":"Specified folder ID 'ajeo6305v0s5dlvo8fgg' does not match with service account folder ID 'b1gr80e9fpsh1ord9lrg'","httpStatus":"Bad Request","details":[]}}
+2025-11-18 03:05:02.499 | INFO     | __main__:main:495 - 🚀 Запуск бота...
+2025-11-18 03:05:15.391 | ERROR    | yandex_api:_call_yandex_gpt:182 - ❌ Ошибка YandexGPT API: статус 403
+2025-11-18 03:05:15.391 | ERROR    | yandex_api:_call_yandex_gpt:183 - Ответ: {"error":{"grpcCode":7,"httpCode":403,"message":"Permission denied","httpStatus":"Forbidden","details":[]}}
+2025-11-18 03:10:32.028 | INFO     | __main__:main:495 - 🚀 Запуск бота...
+2025-11-18 03:10:47.392 | INFO     | __main__:start_command:64 - ✅ Новый пользователь: G.K. (@G_Kzk)
+2025-11-18 03:11:05.921 | ERROR    | yandex_api:_call_yandex_gpt:182 - ❌ Ошибка YandexGPT API: статус 403
+2025-11-18 03:11:05.921 | ERROR    | yandex_api:_call_yandex_gpt:183 - Ответ: {"error":{"grpcCode":7,"httpCode":403,"message":"Permission denied","httpStatus":"Forbidden","details":[]}}
+2025-11-18 03:11:38.117 | INFO     | __main__:start_command:64 - ✅ Новый пользователь: G.K. (@G_Kzk)
+2025-11-18 03:12:44.289 | ERROR    | __main__:topic_received:350 - Ошибка при генерации: name 'audience' is not defined
+2025-11-19 00:19:25.802 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 00:20:08.490 | ERROR    | yandex_api:_call_yandex_gpt:182 - ❌ Ошибка YandexGPT API: статус 403
+2025-11-19 00:20:08.491 | ERROR    | yandex_api:_call_yandex_gpt:183 - Ответ: {"error":{"grpcCode":7,"httpCode":403,"message":"Permission denied","httpStatus":"Forbidden","details":[]}}
+2025-11-19 00:22:50.894 | ERROR    | yandex_api:_call_yandex_gpt:182 - ❌ Ошибка YandexGPT API: статус 403
+2025-11-19 00:22:50.894 | ERROR    | yandex_api:_call_yandex_gpt:183 - Ответ: {"error":{"grpcCode":7,"httpCode":403,"message":"Permission denied","httpStatus":"Forbidden","details":[]}}
+2025-11-19 00:32:39.860 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 00:32:55.321 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 00:33:22.492 | ERROR    | yandex_api:_call_yandex_gpt:182 - ❌ Ошибка YandexGPT API: статус 403
+2025-11-19 00:33:22.492 | ERROR    | yandex_api:_call_yandex_gpt:183 - Ответ: {"error":{"grpcCode":7,"httpCode":403,"message":"Permission denied","httpStatus":"Forbidden","details":[]}}
+2025-11-19 00:36:55.009 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 00:43:40.300 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 00:44:05.383 | ERROR    | yandex_api:_call_yandex_gpt:192 - ❌ Ошибка YandexGPT API: статус 404
+2025-11-19 00:44:05.383 | ERROR    | yandex_api:_call_yandex_gpt:193 - Ответ: 
+request-id: 31b888ae-6331-4d4d-9fc0-8157d7104d0b
+trace-id: -
+
+2025-11-19 00:44:26.421 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 00:48:31.485 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 00:48:48.805 | ERROR    | yandex_api:_call_yandex_gpt:193 - ❌ Ошибка YandexGPT API: статус 404
+2025-11-19 00:48:48.805 | ERROR    | yandex_api:_call_yandex_gpt:194 - Ответ: Not Found
+
+2025-11-19 00:48:53.325 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 00:50:30.130 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 00:50:45.873 | ERROR    | yandex_api:_call_yandex_gpt:193 - ❌ Ошибка YandexGPT API: статус 404
+2025-11-19 00:50:45.873 | ERROR    | yandex_api:_call_yandex_gpt:194 - Ответ: 
+request-id: 4b51b926-dd8c-4ded-b0ad-ddf4ccec3004
+trace-id: -
+
+2025-11-19 00:50:53.842 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 00:51:09.678 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 00:51:20.735 | ERROR    | yandex_api:_call_yandex_gpt:193 - ❌ Ошибка YandexGPT API: статус 404
+2025-11-19 00:51:20.735 | ERROR    | yandex_api:_call_yandex_gpt:194 - Ответ: 
+request-id: 7590441b-5b3d-49b6-9647-aaad1f3edf00
+trace-id: -
+
+2025-11-19 19:35:24.681 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 19:35:53.755 | ERROR    | yandex_api:_call_yandex_gpt:192 - ❌ Ошибка YandexGPT API: статус 404
+2025-11-19 19:35:53.755 | ERROR    | yandex_api:_call_yandex_gpt:193 - Ответ: 404 page not found
+
+2025-11-19 19:39:52.302 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 19:44:10.485 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 19:44:25.832 | ERROR    | yandex_api:_call_yandex_gpt:194 - ❌ Ошибка YandexGPT API: статус 404
+2025-11-19 19:44:25.832 | ERROR    | yandex_api:_call_yandex_gpt:195 - Ответ: Not Found
+
+2025-11-19 19:45:16.082 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 19:45:47.116 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 19:46:01.332 | ERROR    | __main__:audience_received:450 - Ошибка: 'YandexGPTHandler' object has no attribute 'generate_ad_slogan'
+2025-11-19 19:46:11.885 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 19:47:33.168 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 19:47:45.365 | ERROR    | yandex_api:_call_yandex_gpt:171 - ❌ Доступ запрещён. Проверьте права сервисного аккаунта
+2025-11-19 19:51:34.017 | ERROR    | yandex_api:_call_yandex_gpt:171 - ❌ Доступ запрещён. Проверьте права сервисного аккаунта
+2025-11-19 19:53:35.546 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 19:57:37.930 | INFO     | __main__:main:665 - 🚀 Запуск бота...
+2025-11-19 19:57:51.864 | INFO     | yandex_api:_call_yandex_gpt:160 - ✅ YandexGPT запрос успешен
+2025-11-19 20:01:40.715 | INFO     | __main__:main:673 - 🛑 Бот остановлен
+2025-11-19 20:14:09.730 | INFO     | __main__:main:1227 - 🚀 Запуск бота...
+2025-11-19 22:48:02.015 | INFO     | __main__:main:1235 - 🛑 Бот остановлен
+2025-11-19 23:29:04.606 | WARNING  | config:validate:127 - ⚠️ CRYPTOMUS_MERCHANT_ID не установлен (крипто-платежи не работают)
+2025-11-19 23:29:04.614 | WARNING  | config:validate:130 - ⚠️ PAYMENT_PROVIDER_TOKEN не установлен (Telegram Stars не работают)
+2025-11-19 23:29:04.614 | INFO     | config:validate:141 - ✅ Конфигурация валидна
+2025-11-19 23:29:04.617 | INFO     | __main__:main:1227 - 🚀 Запуск бота...
+2025-11-19 23:31:30.911 | ERROR    | yandex_api:_call_yandex_gpt:202 - ❌ Неожиданная ошибка: 'Settings' object has no attribute 'REQUEST_TIMEOUT'
+2025-11-19 23:31:50.614 | ERROR    | yandex_api:_call_yandex_gpt:202 - ❌ Неожиданная ошибка: 'Settings' object has no attribute 'REQUEST_TIMEOUT'
+2025-11-19 23:32:24.444 | INFO     | __main__:main:1235 - 🛑 Бот остановлен
