@@ -1,16 +1,11 @@
-# main.py - CONTENTGPT bot (production, aiogram v3)
+# main.py - CONTENTGPT bot (production, aiogram v3 + FastAPI)
 # 
 # Features:
 # - Generation: post/caption/story/ideas + "my style" analysis + edit/regenerate + save
 # - Payments: YooKassa via yandex_kassa_handler.py (poll status) + Telegram Stars
 # - Settings: notifications toggles, export CSV, saved content
 # - Admin: basic stats
-#
-# Требования (env):
-# TELEGRAM_BOT_TOKEN, ADMIN_ID (желательно),
-# YANDEX_GPT_API_KEY, YANDEX_GPT_FOLDER_ID (для генерации),
-# YANDEX_KASSA_SHOP_ID, YANDEX_KASSA_SECRET_KEY (для YooKassa),
-# DATABASE_PATH (опционально), REQUEST_TIMEOUT (опционально)
+# - HTTP Server: FastAPI на PORT для Render (webhook-ready)
 
 import asyncio
 import csv
@@ -20,11 +15,13 @@ import os
 import sqlite3
 import time
 import uuid
+import threading
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, Tuple
 
 import requests
 from loguru import logger
+from fastapi import FastAPI, Request
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -34,8 +31,10 @@ from aiogram.types import (
     InlineKeyboardMarkup, InlineKeyboardButton,
     ReplyKeyboardMarkup, KeyboardButton,
     LabeledPrice, PreCheckoutQuery,
+    Update,
 )
 from aiogram.types.input_file import BufferedInputFile
+import uvicorn
 
 from config import settings, SUBSCRIPTION_PLANS, CONTENT_TYPES
 from yandex_kassa_handler import kassa
@@ -54,6 +53,11 @@ bot = Bot(token=settings.TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
 router = Router()
 dp.include_router(router)
+
+# FastAPI приложение для Render
+app = FastAPI()
+PORT = int(os.getenv("PORT", "10000"))
+WEBHOOK_PATH = f"/webhook/{settings.TELEGRAM_BOT_TOKEN}"
 
 # =============================================================================
 # DATABASE
@@ -643,7 +647,33 @@ class EditStates(StatesGroup):
 # IN-MEMORY CACHE
 # =============================================================================
 
-last_content: Dict[int, Dict[str, str]] = {}  # user_id -> {content_type, prompt, content}
+last_content: Dict[int, Dict[str, str]] = {}
+
+# =============================================================================
+# FASTAPI ENDPOINTS (для Render HTTP сервера)
+# =============================================================================
+
+@app.get("/health")
+async def health_check():
+    """Health check для Render."""
+    return {"status": "ok", "bot": "running", "port": PORT}
+
+@app.get("/")
+async def root():
+    """Root endpoint."""
+    return {"message": "CONTENTGPT BOT is running"}
+
+@app.post(WEBHOOK_PATH)
+async def telegram_webhook(request: Request):
+    """Webhook для Telegram (опционально, сейчас работает polling)."""
+    try:
+        update_data = await request.json()
+        update = Update(**update_data)
+        await dp.feed_update(bot, update)
+        return {"ok": True}
+    except Exception as e:
+        logger.error(f"❌ Webhook error: {e}")
+        return {"ok": False}
 
 # =============================================================================
 # HANDLERS: START / HELP / BASIC
@@ -656,7 +686,6 @@ async def cmd_start(message: Message):
     username = message.from_user.username or ""
     first_name = message.from_user.first_name or "Пользователь"
     
-    # ✅ Гарантируем создание юзера ПЕРВЫМ
     get_or_create_user(uid, username, first_name)
     
     is_admin = is_user_admin(uid)
@@ -694,7 +723,6 @@ async def btn_generation(message: Message):
     username = message.from_user.username or ""
     first_name = message.from_user.first_name or ""
     
-    # ✅ Гарантируем создание юзера
     get_or_create_user(uid, username, first_name)
     
     has_limit, used, limit = check_generation_limit(uid)
@@ -712,7 +740,6 @@ async def btn_profile(message: Message):
     username = message.from_user.username or ""
     first_name = message.from_user.first_name or "Пользователь"
     
-    # ✅ Гарантируем создание юзера
     get_or_create_user(uid, username, first_name)
     
     user = get_user_info(uid)
@@ -743,7 +770,6 @@ async def btn_settings(message: Message):
     username = message.from_user.username or ""
     first_name = message.from_user.first_name or ""
     
-    # ✅ Гарантируем создание юзера
     get_or_create_user(uid, username, first_name)
     
     await message.answer("⚙️ Настройки:", reply_markup=settings_kb())
@@ -935,7 +961,6 @@ async def pay_yookassa(query: CallbackQuery):
             await query.message.edit_text("❌ Ошибка: нет payment_id/confirmation_url в ответе.")
             return
         
-        # Пишем в БД pending
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
@@ -987,7 +1012,6 @@ async def pay_yookassa_check(query: CallbackQuery):
             )
             return
         
-        # Активируем подписку
         update_subscription(uid, sub_type, days=30)
         
         conn = get_db_connection()
@@ -1123,25 +1147,18 @@ async def gen_router(query: CallbackQuery, state: FSMContext):
     if kind == "post":
         await query.message.edit_text("📝 Пост: введи тему (например: «путешествия»).")
         await state.set_state(GenStates.post_topic)
-    
     elif kind == "caption":
         await query.message.edit_text("💬 Подпись: пришли фото (как изображение).")
         await state.set_state(GenStates.caption_photo)
-    
     elif kind == "story":
-        await query.message.edit_text(
-            "📱 История: выбери вектор/цель (например: «прогрев», «продажа», «вовлечение»)."
-        )
+        await query.message.edit_text("📱 История: выбери вектор/цель (например: «прогрев», «продажа», «вовлечение»).")
         await state.set_state(GenStates.story_vector)
-    
     elif kind == "ideas":
         await query.message.edit_text("💡 Идеи: укажи нишу/тему (например: «фитнес для занятых»).")
         await state.set_state(GenStates.ideas_theme)
-    
     elif kind == "style":
         await query.message.edit_text("🤖 Мой стиль: пришли 2–3 примера твоих постов одним сообщением.")
         await state.set_state(GenStates.style_examples)
-    
     else:
         await query.answer("❌ Неизвестный тип", show_alert=True)
     
@@ -1170,9 +1187,7 @@ async def post_style(query: CallbackQuery, state: FSMContext):
     style = query.data.split("poststyle:")[1]
     await state.update_data(style=style)
     
-    await query.message.edit_text(
-        "Шаг 3/4: напиши целевую аудиторию (например: «предприниматели»)."
-    )
+    await query.message.edit_text("Шаг 3/4: напиши целевую аудиторию (например: «предприниматели»).")
     await state.set_state(GenStates.post_audience)
     await query.answer()
 
@@ -1181,9 +1196,7 @@ async def post_audience(message: Message, state: FSMContext):
     """Ввод аудитории."""
     await state.update_data(audience=message.text.strip())
     
-    await message.answer(
-        "Шаг 4/4: напиши CTA (например: «подпишись», «напиши в ЛС», «оставь комментарий»)."
-    )
+    await message.answer("Шаг 4/4: напиши CTA (например: «подпишись», «напиши в ЛС», «оставь комментарий»).")
     await state.set_state(GenStates.post_cta)
 
 @router.message(GenStates.post_cta)
@@ -1191,7 +1204,6 @@ async def post_cta(message: Message, state: FSMContext):
     """Генерация поста."""
     uid = message.from_user.id
     
-    # ✅ Проверяем лимит ещё раз перед генерацией
     has_limit, used, limit = check_generation_limit(uid)
     if not has_limit:
         await message.answer(f"❌ Лимит исчерпан ({used}/{limit}).")
@@ -1223,15 +1235,11 @@ async def post_cta(message: Message, state: FSMContext):
     text = await gpt.generate(prompt, "post")
     
     if not text:
-        await message.answer(
-            "❌ Не удалось сгенерировать. Проверь YANDEX_GPT_API_KEY/FOLDER_ID."
-        )
+        await message.answer("❌ Не удалось сгенерировать. Проверь YANDEX_GPT_API_KEY/FOLDER_ID.")
         await state.clear()
         return
     
-    # ✅ Инкрементируем счётчик ПОСЛЕ успешной генерации
     increment_generation_counter(uid)
-    
     save_generation(uid, "post", prompt, text)
     last_content[uid] = {"content_type": "post", "prompt": prompt, "content": text}
     
@@ -1245,7 +1253,6 @@ async def story_vector(message: Message, state: FSMContext):
     """Генерация сторис."""
     uid = message.from_user.id
     
-    # ✅ Проверяем лимит перед генерацией
     has_limit, used, limit = check_generation_limit(uid)
     if not has_limit:
         await message.answer(f"❌ Лимит исчерпан ({used}/{limit}).")
@@ -1253,7 +1260,6 @@ async def story_vector(message: Message, state: FSMContext):
         return
     
     vector = message.text.strip()
-    
     user_style = get_user_style(uid)
     style_note = f"\nСтиль автора (учти): {user_style}\n" if user_style else ""
     
@@ -1265,7 +1271,6 @@ async def story_vector(message: Message, state: FSMContext):
     )
     
     await message.answer("⏳ Генерирую...")
-    
     text = await gpt.generate(prompt, "story")
     
     if not text:
@@ -1273,9 +1278,7 @@ async def story_vector(message: Message, state: FSMContext):
         await state.clear()
         return
     
-    # ✅ Инкрементируем счётчик
     increment_generation_counter(uid)
-    
     save_generation(uid, "story", prompt, text)
     last_content[uid] = {"content_type": "story", "prompt": prompt, "content": text}
     
@@ -1289,7 +1292,6 @@ async def ideas_theme(message: Message, state: FSMContext):
     """Генерация идей."""
     uid = message.from_user.id
     
-    # ✅ Проверяем лимит перед генерацией
     has_limit, used, limit = check_generation_limit(uid)
     if not has_limit:
         await message.answer(f"❌ Лимит исчерпан ({used}/{limit}).")
@@ -1297,7 +1299,6 @@ async def ideas_theme(message: Message, state: FSMContext):
         return
     
     theme = message.text.strip()
-    
     user_style = get_user_style(uid)
     style_note = f"\nСтиль автора (учти): {user_style}\n" if user_style else ""
     
@@ -1309,7 +1310,6 @@ async def ideas_theme(message: Message, state: FSMContext):
     )
     
     await message.answer("⏳ Генерирую...")
-    
     text = await gpt.generate(prompt, "ideas")
     
     if not text:
@@ -1317,9 +1317,7 @@ async def ideas_theme(message: Message, state: FSMContext):
         await state.clear()
         return
     
-    # ✅ Инкрементируем счётчик
     increment_generation_counter(uid)
-    
     save_generation(uid, "ideas", prompt, text)
     last_content[uid] = {"content_type": "ideas", "prompt": prompt, "content": text}
     
@@ -1337,10 +1335,7 @@ async def caption_photo(message: Message, state: FSMContext):
     
     photo_id = message.photo[-1].file_id
     await state.update_data(photo_id=photo_id)
-    
-    await message.answer(
-        "Ок. Теперь напиши задачу для подписи (тон, цель, оффер, длина)."
-    )
+    await message.answer("Ок. Теперь напиши задачу для подписи (тон, цель, оффер, длина).")
     await state.set_state(GenStates.caption_task)
 
 @router.message(GenStates.caption_task)
@@ -1348,7 +1343,6 @@ async def caption_task(message: Message, state: FSMContext):
     """Генерация подписи."""
     uid = message.from_user.id
     
-    # ✅ Проверяем лимит перед генерацией
     has_limit, used, limit = check_generation_limit(uid)
     if not has_limit:
         await message.answer(f"❌ Лимит исчерпан ({used}/{limit}).")
@@ -1357,7 +1351,6 @@ async def caption_task(message: Message, state: FSMContext):
     
     data = await state.get_data()
     task = message.text.strip()
-    
     user_style = get_user_style(uid)
     style_note = f"\nСтиль автора (учти): {user_style}\n" if user_style else ""
     
@@ -1370,7 +1363,6 @@ async def caption_task(message: Message, state: FSMContext):
     )
     
     await message.answer("⏳ Генерирую...")
-    
     text = await gpt.generate(prompt, "caption")
     
     if not text:
@@ -1378,9 +1370,7 @@ async def caption_task(message: Message, state: FSMContext):
         await state.clear()
         return
     
-    # ✅ Инкрементируем счётчик
     increment_generation_counter(uid)
-    
     save_generation(uid, "caption", prompt, text)
     last_content[uid] = {"content_type": "caption", "prompt": prompt, "content": text}
     
@@ -1394,7 +1384,6 @@ async def style_examples(message: Message, state: FSMContext):
     """Анализ стиля автора."""
     uid = message.from_user.id
     
-    # ✅ Проверяем лимит перед генерацией
     has_limit, used, limit = check_generation_limit(uid)
     if not has_limit:
         await message.answer(f"❌ Лимит исчерпан ({used}/{limit}).")
@@ -1411,7 +1400,6 @@ async def style_examples(message: Message, state: FSMContext):
     )
     
     await message.answer("⏳ Анализирую стиль...")
-    
     style = await gpt.generate(prompt, "style_analysis")
     
     if not style:
@@ -1419,9 +1407,7 @@ async def style_examples(message: Message, state: FSMContext):
         await state.clear()
         return
     
-    # ✅ Инкрементируем счётчик
     increment_generation_counter(uid)
-    
     save_user_style(uid, style)
     
     await message.answer(
@@ -1465,16 +1451,13 @@ async def content_regen(query: CallbackQuery):
         return
     
     await query.answer("⏳ Генерирую ещё вариант...")
-    
     text = await gpt.generate(item["prompt"], item["content_type"])
     
     if not text:
         await query.message.answer("❌ Не удалось перегенерировать.")
         return
     
-    # ✅ Инкрементируем счётчик
     increment_generation_counter(uid)
-    
     save_generation(uid, item["content_type"], item["prompt"], text)
     last_content[uid]["content"] = text
     
@@ -1495,10 +1478,7 @@ async def content_edit(query: CallbackQuery, state: FSMContext):
         edit_content_type=item["content_type"]
     )
     
-    await query.message.answer(
-        "✏️ Напиши, какие правки внести "
-        "(тон, структура, длина, что добавить/убрать)."
-    )
+    await query.message.answer("✏️ Напиши, какие правки внести (тон, структура, длина, что добавить/убрать).")
     await state.set_state(EditStates.waiting_edit)
     await query.answer()
 
@@ -1507,7 +1487,6 @@ async def edit_apply(message: Message, state: FSMContext):
     """Применение правок."""
     uid = message.from_user.id
     
-    # ✅ Проверяем лимит перед генерацией
     has_limit, used, limit = check_generation_limit(uid)
     if not has_limit:
         await message.answer(f"❌ Лимит исчерпан ({used}/{limit}).")
@@ -1522,7 +1501,6 @@ async def edit_apply(message: Message, state: FSMContext):
     prompt = base_prompt + "\n\nВнеси правки (обязательно): " + instr
     
     await message.answer("⏳ Применяю правки...")
-    
     text = await gpt.generate(prompt, ctype)
     
     if not text:
@@ -1530,9 +1508,7 @@ async def edit_apply(message: Message, state: FSMContext):
         await state.clear()
         return
     
-    # ✅ Инкрементируем счётчик
     increment_generation_counter(uid)
-    
     save_generation(uid, ctype, prompt, text)
     last_content[uid] = {"content_type": ctype, "prompt": prompt, "content": text}
     
@@ -1567,10 +1543,24 @@ async def admin_panel(message: Message):
 # MAIN
 # =============================================================================
 
+def run_fastapi():
+    """Запуск FastAPI в отдельном потоке."""
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=PORT,
+        log_level="warning"
+    )
+
 async def main():
     """Точка входа."""
-    logger.info("🚀 Запуск бота...")
+    logger.info(f"🚀 Запуск бота на порту {PORT}...")
     init_database()
+    
+    # Запускаем FastAPI в отдельном потоке
+    api_thread = threading.Thread(target=run_fastapi, daemon=True)
+    api_thread.start()
+    logger.info(f"📡 FastAPI сервер запущен на 0.0.0.0:{PORT}")
     
     try:
         await dp.start_polling(bot)
