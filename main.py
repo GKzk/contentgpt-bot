@@ -15,8 +15,11 @@ import asyncio
 import csv
 import io
 import json
+import os
 import sqlite3
 import uuid
+import time
+from sqlite3 import OperationalError, connect
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, Tuple
 
@@ -51,17 +54,18 @@ dp.include_router(router)
 
 
 # ----------------- DB -----------------
-DATABASE_PATH = getattr(settings, "DATABASE_PATH", None) or "bot_database.db"
+DATABASE_PATH = os.getenv("DATABASE_PATH", "bot_database.db")
 
-
-def db_connect() -> sqlite3.Connection:
-    conn = sqlite3.connect(DATABASE_PATH)
-    conn.execute("PRAGMA foreign_keys=ON")
+def get_db_connection():
+    """Connection pool с улучшениями для конкурентности"""
+    conn = sqlite3.connect(DATABASE_PATH, timeout=10, check_same_thread=False)
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=NORMAL")  # ← Ускорение, но безопасно
     return conn
 
 
 def init_database() -> None:
-    conn = db_connect()
+    conn = connect()
     cur = conn.cursor()
 
     cur.execute("""
@@ -145,22 +149,64 @@ def init_database() -> None:
     logger.info("✅ DB initialized at {}", DATABASE_PATH)
 
 
-def get_or_create_user(user_id: int, username: str, first_name: str) -> None:
-    conn = db_connect()
-    cur = conn.cursor()
-
-    cur.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
-    exists = cur.fetchone()
-
-    if not exists:
-        cur.execute("""
-        INSERT INTO users (user_id, username, first_name, subscription_type, is_admin)
-        VALUES (?, ?, ?, 'free', 0)
-        """, (user_id, username, first_name))
-        cur.execute("INSERT INTO user_settings (user_id) VALUES (?)", (user_id,))
+def get_or_create_user(user_id: int, username: str = "", first_name: str = ""):
+    """Гарантировать создание юзера перед использованием"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
+        if not cursor.fetchone():
+            cursor.execute("""
+                INSERT INTO users (user_id, username, first_name, subscription_type)
+                VALUES (?, ?, ?, 'free')
+            """, (user_id, username, first_name))
+            
+            cursor.execute("INSERT INTO user_settings (user_id) VALUES (?)", (user_id,))
+            logger.info(f"✅ Создан юзер {user_id}")
+        
         conn.commit()
+        conn.close()
+    except sqlite3.IntegrityError:
+        logger.warning(f"⚠️ Юзер {user_id} уже существует")
+    except sqlite3.OperationalError as e:
+        logger.error(f"❌ Ошибка БД при создании юзера {user_id}: {e}")
 
-    conn.close()
+def increment_generation_counter(user_id: int):
+    """Инкремент счётчика с проверкой"""
+    today = datetime.now().strftime("%Y-%m-%d")
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        
+        # Проверка существования
+        cursor.execute("SELECT user_id FROM users WHERE user_id = ?", (user_id,))
+        if not cursor.fetchone():
+            logger.error(f"❌ Юзер {user_id} не существует! Создаю...")
+            conn.close()
+            get_or_create_user(user_id)
+            conn = get_db_connection()
+            cursor = conn.cursor()
+        
+        # Инкремент
+        cursor.execute("""
+            INSERT OR REPLACE INTO generation_counter (user_id, date, count)
+            VALUES (?, ?, COALESCE((
+                SELECT count FROM generation_counter 
+                WHERE user_id = ? AND date = ?
+            ), 0) + 1)
+        """, (user_id, today, user_id, today))
+        
+        conn.commit()
+        conn.close()
+        logger.debug(f"✅ Счётчик +1 для {user_id}")
+        
+    except sqlite3.OperationalError as e:
+        if "database is locked" in str(e):
+            logger.error(f"⚠️ БД заблокирована: {e}")
+        else:
+            logger.error(f"❌ БД ошибка: {e}")
 
 
 def is_user_admin(user_id: int) -> bool:
@@ -168,7 +214,7 @@ def is_user_admin(user_id: int) -> bool:
     if admin_id and str(user_id) == str(admin_id):
         return True
 
-    conn = db_connect()
+    conn = connect()
     cur = conn.cursor()
     cur.execute("SELECT is_admin FROM users WHERE user_id = ?", (user_id,))
     row = cur.fetchone()
@@ -177,7 +223,7 @@ def is_user_admin(user_id: int) -> bool:
 
 
 def get_user_info(user_id: int) -> Optional[Dict[str, Any]]:
-    conn = db_connect()
+    conn = connect()
     cur = conn.cursor()
     cur.execute("""
         SELECT user_id, username, first_name, subscription_type, subscription_until, bonus_points, is_admin
@@ -219,7 +265,7 @@ def check_generation_limit(user_id: int) -> Tuple[bool, int, int]:
 
     today = datetime.now().strftime("%Y-%m-%d")
 
-    conn = db_connect()
+    conn = connect()
     cur = conn.cursor()
     cur.execute("SELECT count FROM generation_counter WHERE user_id = ? AND date = ?", (user_id, today))
     row = cur.fetchone()
