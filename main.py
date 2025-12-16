@@ -277,7 +277,7 @@ def check_generation_limit(user_id: int) -> Tuple[bool, int, int]:
 
 def increment_generation_counter(user_id: int) -> None:
     today = datetime.now().strftime("%Y-%m-%d")
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
 
     cur.execute("""
@@ -291,7 +291,7 @@ def increment_generation_counter(user_id: int) -> None:
 
 
 def save_generation(user_id: int, content_type: str, prompt: str, content: str) -> None:
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
     INSERT INTO generation_history (user_id, content_type, prompt, content)
@@ -302,7 +302,7 @@ def save_generation(user_id: int, content_type: str, prompt: str, content: str) 
 
 
 def save_content(user_id: int, content_type: str, prompt: str, content: str) -> None:
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
     INSERT INTO saved_content (user_id, content_type, prompt, content)
@@ -313,7 +313,7 @@ def save_content(user_id: int, content_type: str, prompt: str, content: str) -> 
 
 
 def get_saved_last(user_id: int, limit: int = 10):
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
     SELECT id, content_type, content, created_at
@@ -328,7 +328,7 @@ def get_saved_last(user_id: int, limit: int = 10):
 
 
 def get_user_style(user_id: int) -> Optional[str]:
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("SELECT user_style FROM user_settings WHERE user_id = ?", (user_id,))
     row = cur.fetchone()
@@ -337,7 +337,7 @@ def get_user_style(user_id: int) -> Optional[str]:
 
 
 def save_user_style(user_id: int, style: str) -> None:
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("UPDATE user_settings SET user_style = ? WHERE user_id = ?", (style, user_id))
     conn.commit()
@@ -349,7 +349,7 @@ def toggle_notification(user_id: int, field: str) -> bool:
     if field not in ("notif_features", "notif_promos", "notif_reminders"):
         return False
 
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute(f"SELECT {field} FROM user_settings WHERE user_id = ?", (user_id,))
     row = cur.fetchone()
@@ -363,7 +363,7 @@ def toggle_notification(user_id: int, field: str) -> bool:
 
 
 def get_notifications(user_id: int) -> Tuple[int, int, int]:
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
     SELECT notif_features, notif_promos, notif_reminders
@@ -378,7 +378,7 @@ def get_notifications(user_id: int) -> Tuple[int, int, int]:
 
 def update_subscription(user_id: int, sub_type: str, days: int = 30) -> None:
     until = datetime.now() + timedelta(days=days)
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
     UPDATE users
@@ -390,7 +390,7 @@ def update_subscription(user_id: int, sub_type: str, days: int = 30) -> None:
 
 
 def admin_stats() -> Dict[str, Any]:
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
 
     cur.execute("SELECT COUNT(*) FROM users")
@@ -678,7 +678,7 @@ async def settings_saved(query: CallbackQuery):
 async def settings_export(query: CallbackQuery):
     uid = query.from_user.id
 
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
     SELECT content_type, prompt, content, created_at
@@ -772,7 +772,7 @@ async def pay_yookassa(query: CallbackQuery):
         return
 
     # пишем в БД pending
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
     INSERT INTO payments (user_id, provider, external_id, order_id, subscription_type, amount, currency, status)
@@ -816,7 +816,7 @@ async def pay_yookassa_check(query: CallbackQuery):
     # Активируем подписку
     update_subscription(uid, sub_type, days=30)
 
-    conn = db_connect()
+    conn = get_db_connection()
     cur = conn.cursor()
     cur.execute("""
     UPDATE payments SET status='completed', updated_at=datetime('now')
@@ -889,7 +889,7 @@ async def successful_payment(message: Message):
         # В Stars total_amount приходит в “минимальных единицах”; для XTR это обычно целые Stars.
         amount = float(sp.total_amount)
 
-        conn = db_connect()
+        conn = get_db_connection()
         cur = conn.cursor()
         cur.execute("""
         INSERT INTO payments (user_id, provider, external_id, order_id, subscription_type, amount, currency, status)
