@@ -1539,6 +1539,39 @@ async def admin_panel(message: Message):
         f"Выручка (условно): {stats['revenue']}\n"
     )
 
+# ==================== FastAPI Web Server ====================
+from fastapi import FastAPI
+import uvicorn
+
+app = FastAPI()
+
+PORT = int(os.getenv("PORT", 10000))
+
+@app.get("/")
+async def root():
+    return {"status": "ok", "service": "ContentGPT Bot"}
+
+@app.get("/health")
+async def health():
+    """Health check от UptimeRobot"""
+    return {"status": "healthy"}
+
+@app.post("/webhook/yandex-kassa")
+async def yandex_kassa_webhook(request: dict):
+    """Webhook платежей от Yandex.Kassa"""
+    logger.info(f"🔔 Kassa webhook: {request}")
+    return {"status": "received"}
+
+def run_fastapi():
+    """Запуск FastAPI в отдельном потоке"""
+    logger.info(f"🌐 FastAPI на 0.0.0.0:{PORT}")
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=PORT,
+        log_level="info"
+    )
+
 # =============================================================================
 # MAIN
 # =============================================================================
