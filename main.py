@@ -1559,29 +1559,37 @@ async def admin_panel(message: Message):
 # MAIN
 # =============================================================================
 
-def run_fastapi():
-    """Запуск FastAPI в отдельном потоке."""
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=PORT,
-        log_level="warning"
-    )
-
 async def main():
-    """Точка входа."""
-    logger.info(f"🚀 Запуск бота на порту {PORT}...")
-    init_database()
+    """Запуск бота с polling"""
+    logger.info("✅ Bot initialized and ready to poll")
     
     # Запускаем FastAPI в отдельном потоке
     api_thread = threading.Thread(target=run_fastapi, daemon=True)
     api_thread.start()
-    logger.info(f"📡 FastAPI сервер запущен на 0.0.0.0:{PORT}")
+    logger.info(f"📍 FastAPI сервер запущен на 0.0.0.0:{PORT}")
     
     try:
+        logger.info("🚀 Starting bot polling...")
         await dp.start_polling(bot)
+    except Exception as e:
+        logger.error(f"❌ Error in polling: {e}")
+        raise
     finally:
         await bot.session.close()
+        logger.info("🛑 Bot session closed")
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    logger.info("📍 Script execution started")
+    logger.info("🔄 Initializing database...")
+    init_database()
+    logger.info("✅ Database initialized")
+    logger.info("🤖 Starting ContentGPT Bot...")
+    
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("⏹️ Bot stopped by user")
+    except Exception as e:
+        logger.critical(f"💥 Critical error: {e}")
+        raise
