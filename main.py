@@ -7,7 +7,6 @@
 # - Admin: basic stats
 # - HTTP Server: FastAPI на PORT для Render (webhook-ready)
 
-import logging
 import asyncio
 import csv
 import io
@@ -39,12 +38,6 @@ import uvicorn
 
 from config import settings, SUBSCRIPTION_PLANS, CONTENT_TYPES
 from yandex_kassa_handler import kassa
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-logger.info("🚀 Bot starting...")
-
-
 
 # =============================================================================
 # LOGGING
