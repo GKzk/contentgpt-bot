@@ -44,15 +44,6 @@ logger = logging.getLogger(__name__)
 
 logger.info("🚀 Bot starting...")
 
-async def main():
-    logger.info("✅ Bot initialized")
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    logger.info("📍 Script execution started")
-    asyncio.run(main())
-
-
 
 
 # =============================================================================
