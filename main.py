@@ -9,20 +9,6 @@
 
 import logging
 import asyncio
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-logger.info("🚀 Bot starting...")
-
-async def main():
-    logger.info("✅ Bot initialized")
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    logger.info("📍 Script execution started")
-    asyncio.run(main())
-
-
 import csv
 import io
 import json
@@ -53,6 +39,21 @@ import uvicorn
 
 from config import settings, SUBSCRIPTION_PLANS, CONTENT_TYPES
 from yandex_kassa_handler import kassa
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+logger.info("🚀 Bot starting...")
+
+async def main():
+    logger.info("✅ Bot initialized")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    logger.info("📍 Script execution started")
+    asyncio.run(main())
+
+
+
 
 # =============================================================================
 # LOGGING
