@@ -1551,10 +1551,10 @@ PORT = int(os.getenv("PORT", 10000))
 async def root():
     return {"status": "ok", "service": "ContentGPT Bot"}
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD", "POST"])
 async def health():
-    """Health check от UptimeRobot"""
-    return {"status": "healthy"}
+    """Health check - accepts GET, HEAD, POST"""
+    return {"status": "ok", "service": "ContentGPT Bot"}
 
 @app.post("/webhook/yandex-kassa")
 async def yandex_kassa_webhook(request: dict):
