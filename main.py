@@ -6,6 +6,20 @@
 # - Settings: notifications toggles, export CSV, saved content
 # - Admin: basic stats
 # - HTTP Server: FastAPI на PORT для Render (webhook-ready)
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+logger.info("🚀 Bot starting...")
+
+async def main():
+    logger.info("✅ Bot initialized")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    logger.info("📍 Script execution started")
+    asyncio.run(main())
 
 import asyncio
 import csv
