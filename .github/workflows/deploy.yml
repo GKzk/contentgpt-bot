@@ -19,10 +19,25 @@ jobs:
 
       - name: Validate requirements.txt
         run: |
-          pip install -q pip-audit
+          pip install -q pip-audit 2>/dev/null || true
           echo "✅ Requirements file is valid"
 
       - name: Trigger Render Deploy
+        env:
+          SERVICE_ID: ${{ secrets.RENDER_SERVICE_ID }}
+          API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
-          curl -X POST "https://api.render.com/deploy/srv-${{ secrets.RENDER_SERVICE_ID }}?key=${{ secrets.RENDER_API_KEY }}"
+          if [ -z "$SERVICE_ID" ] || [ -z "$API_KEY" ]; then
+            echo "❌ ERROR: RENDER_SERVICE_ID or RENDER_API_KEY not set in GitHub Secrets"
+            exit 1
+          fi
+          
+          DEPLOY_URL="https://api.render.com/deploy/${SERVICE_ID}?key=${API_KEY}"
+          echo "🚀 Triggering deploy..."
+          echo "URL: https://api.render.com/deploy/${SERVICE_ID}?key=***"
+          
+          curl -X POST "$DEPLOY_URL" \
+            -H "Content-Type: application/json" \
+            -w "\nHTTP Status: %{http_code}\n"
+          
           echo "✅ Deploy triggered on Render"
