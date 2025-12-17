@@ -6,8 +6,9 @@
 # - Settings: notifications toggles, export CSV, saved content
 # - Admin: basic stats
 # - HTTP Server: FastAPI на PORT для Render (webhook-ready)
-import logging
 
+import logging
+import asyncio
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     logger.info("📍 Script execution started")
     asyncio.run(main())
 
-import asyncio
+
 import csv
 import io
 import json
